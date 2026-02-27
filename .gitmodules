@@ -1,0 +1,3 @@
+[submodule "refs/doubaoime-asr"]
+	path = refs/doubaoime-asr
+	url = git@github.com:starccy/doubaoime-asr.git
