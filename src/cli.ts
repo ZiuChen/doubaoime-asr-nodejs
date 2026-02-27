@@ -42,17 +42,21 @@ function resolveConfigOptions(opts: {
 }
 
 /**
- * 加载 Opus 编码器（@discordjs/opus）
+ * 加载 Opus 编码器（@evan/opus）
  */
 async function loadOpusEncoder(
   sampleRate = 16000,
   channels = 1
 ): Promise<import('./types.js').OpusEncoder> {
-  const opus = await import('@discordjs/opus')
-  const encoder = new opus.OpusEncoder(sampleRate, channels)
+  const { Encoder } = await import('@evan/opus')
+  const encoder = new Encoder({
+    sample_rate: sampleRate as 16000,
+    channels: channels as 1,
+    application: 'voip'
+  })
   return {
     encode(pcm: Buffer, _frameSize: number): Buffer {
-      return encoder.encode(pcm)
+      return Buffer.from(encoder.encode(pcm))
     }
   }
 }

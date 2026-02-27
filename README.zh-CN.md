@@ -24,7 +24,7 @@
 - **Wave 加密** — ECDH 密钥交换 + ChaCha20 流加密（完全基于原生 `crypto`）
 - **Protobuf-es** — 类型安全的 protobuf 编解码（`@bufbuild/protobuf`）
 - **CLI 工具** — 命令行快速转写
-- **最小依赖** — 运行时仅 `ws`、`cac`、`@bufbuild/protobuf`、`@discordjs/opus`
+- **最小依赖** — 运行时仅 `ws`、`cac`、`@bufbuild/protobuf`、`@evan/opus`
 
 ## 安装
 
@@ -32,7 +32,7 @@
 pnpm add doubaoime-asr
 ```
 
-`@discordjs/opus`（原生 Opus 编码器）作为依赖一同分发，安装时会自动编译原生模块。
+`@evan/opus`（基于 Wasm 的 Opus 编码器）作为依赖一同分发，无需原生编译。
 
 ## 快速开始
 
@@ -40,12 +40,12 @@ pnpm add doubaoime-asr
 
 ```typescript
 import { DoubaoASR, ASRConfig } from 'doubaoime-asr'
-import { OpusEncoder } from '@discordjs/opus'
+import { Encoder } from '@evan/opus'
 
-const opus = new OpusEncoder(16000, 1)
+const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 const config = new ASRConfig({
   credentialPath: './credentials.json', // 自动注册并缓存
-  opusEncoder: { encode: (pcm) => opus.encode(pcm) },
+  opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) },
 })
 
 const asr = new DoubaoASR(config)
@@ -71,14 +71,16 @@ for await (const resp of asr.transcribeRealtime(audioSource)) {
 
 ```typescript
 import { ASRConfig, registerDevice, getAsrToken } from 'doubaoime-asr'
+import { Encoder } from '@evan/opus'
 
 // 程序化获取凭据
 const creds = await registerDevice()
 const token = await getAsrToken(creds.deviceId!, creds.cdid)
 
+const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 const config = new ASRConfig({
   credentials: { ...creds, token },
-  opusEncoder: { encode: (pcm) => opus.encode(pcm) },
+  opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) },
 })
 ```
 
@@ -179,7 +181,7 @@ ffmpeg -i input.mp3 -ar 16000 -ac 1 -f wav output.wav
 | WAV 文件解析 | 手动实现 |
 | 文件系统 | 原生 `fs` |
 
-运行时依赖：`ws`（WebSocket 自定义 Headers）、`cac`（CLI）、`@bufbuild/protobuf`（protobuf 编解码）、`@discordjs/opus`（Opus 音频编码）。
+运行时依赖：`ws`（WebSocket 自定义 Headers）、`cac`（CLI）、`@bufbuild/protobuf`（protobuf 编解码）、`@evan/opus`（Opus 音频编码，Wasm）。
 
 ## 项目结构
 

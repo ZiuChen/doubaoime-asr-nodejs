@@ -24,7 +24,7 @@ This project is based on protocol analysis and reference to the Android Doubao I
 - **Wave Encryption** — ECDH key exchange + ChaCha20 stream cipher (fully native `crypto`)
 - **Protobuf-es** — Type-safe message encoding/decoding via `@bufbuild/protobuf`
 - **CLI Tool** — Command-line interface for quick transcription
-- **Minimal Dependencies** — Only `ws`, `cac`, `@bufbuild/protobuf`, and `@discordjs/opus` at runtime
+- **Minimal Dependencies** — Only `ws`, `cac`, `@bufbuild/protobuf`, and `@evan/opus` at runtime
 
 ## Installation
 
@@ -32,7 +32,7 @@ This project is based on protocol analysis and reference to the Android Doubao I
 pnpm add doubaoime-asr
 ```
 
-`@discordjs/opus` (native Opus encoder) is included as a dependency and will be compiled automatically during install.
+`@evan/opus` (Wasm-based Opus encoder) is included as a dependency — no native compilation needed.
 
 ## Quick Start
 
@@ -40,12 +40,12 @@ pnpm add doubaoime-asr
 
 ```typescript
 import { DoubaoASR, ASRConfig } from 'doubaoime-asr'
-import { OpusEncoder } from '@discordjs/opus'
+import { Encoder } from '@evan/opus'
 
-const opus = new OpusEncoder(16000, 1)
+const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 const config = new ASRConfig({
   credentialPath: './credentials.json',
-  opusEncoder: { encode: (pcm) => opus.encode(pcm) },
+  opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) },
 })
 
 const asr = new DoubaoASR(config)
@@ -71,14 +71,16 @@ Instead of a file path, you can pass credentials directly as a JS object:
 
 ```typescript
 import { ASRConfig, registerDevice, getAsrToken } from 'doubaoime-asr'
+import { Encoder } from '@evan/opus'
 
 // Obtain credentials programmatically
 const creds = await registerDevice()
 const token = await getAsrToken(creds.deviceId!, creds.cdid)
 
+const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 const config = new ASRConfig({
   credentials: { ...creds, token },
-  opusEncoder: { encode: (pcm) => opus.encode(pcm) },
+  opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) },
 })
 ```
 
@@ -179,7 +181,7 @@ This project maximizes use of Node.js built-in APIs:
 | WAV parsing | Manual implementation |
 | File system | Native `fs` |
 
-Runtime dependencies: `ws` (WebSocket with custom headers), `cac` (CLI), `@bufbuild/protobuf` (protobuf encoding), `@discordjs/opus` (Opus audio encoding).
+Runtime dependencies: `ws` (WebSocket with custom headers), `cac` (CLI), `@bufbuild/protobuf` (protobuf encoding), `@evan/opus` (Opus audio encoding, Wasm).
 
 ## Project Structure
 

@@ -181,4 +181,4 @@ console.log('Encoded:', Buffer.from(buf).toString('hex'))
 1. **保持 utils 无副作用**：`src/utils/` 下的文件不应引入 `fs`、`fetch`、`WebSocket` 等 I/O 操作
 2. **不要手动编辑 gen/ 目录**：`src/gen/` 下的代码由 protoc 生成，修改会被覆盖
 3. **Node.js 版本**：本项目硬性要求 >= 24，使用了 `crypto.hkdfSync`、`fetch` 等 API
-4. **Opus 编码器**：`@discordjs/opus` 作为 dependencies 分发，安装时会自动编译原生模块
+4. **Opus 编码器**：`@evan/opus` 作为 dependencies 分发（基于 Wasm，无需原生编译）

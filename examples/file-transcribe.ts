@@ -11,8 +11,8 @@
 
 import { writeFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { OpusEncoder } from '@discordjs/opus'
-import { DoubaoASR, ASRConfig, ResponseType } from '../src/index.js'
+import { Encoder } from '@evan/opus'
+import { DoubaoASR, ASRConfig, ResponseType } from '../dist/index.mjs'
 
 // ─── 音频准备 ─────────────────────────────────────────────────
 
@@ -90,11 +90,11 @@ async function demoTranscribeStream(asr: DoubaoASR, audioPath: string) {
 async function main() {
   const audioPath = await getAudioPath()
 
-  const opus = new OpusEncoder(16000, 1)
+  const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 
   const config = new ASRConfig({
     credentialPath: './credentials.json',
-    opusEncoder: { encode: (pcm) => opus.encode(pcm) }
+    opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) }
   })
 
   const asr = new DoubaoASR(config)
