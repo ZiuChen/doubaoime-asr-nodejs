@@ -344,7 +344,22 @@ export class DoubaoASR {
       if (err instanceof ASRError) throw err
       throw new ASRError(`WebSocket error: ${(err as Error).message}`)
     } finally {
-      ws?.close()
+      if (ws) {
+        ws.close()
+        if (ws.readyState !== WebSocket.CLOSED) {
+          await new Promise<void>((resolve) => {
+            const onClose = () => {
+              ws!.removeListener('close', onClose)
+              resolve()
+            }
+            ws!.on('close', onClose)
+            setTimeout(() => {
+              ws!.removeListener('close', onClose)
+              resolve()
+            }, 2000)
+          })
+        }
+      }
     }
   }
 
@@ -397,7 +412,24 @@ export class DoubaoASR {
       if (err instanceof ASRError) throw err
       throw new ASRError(`WebSocket error: ${(err as Error).message}`)
     } finally {
-      ws?.close()
+      if (ws) {
+        ws.close()
+        // 等待 WebSocket 完全关闭，避免 ExceededConcurrentQuota
+        if (ws.readyState !== WebSocket.CLOSED) {
+          await new Promise<void>((resolve) => {
+            const onClose = () => {
+              ws!.removeListener('close', onClose)
+              resolve()
+            }
+            ws!.on('close', onClose)
+            // 兜底超时
+            setTimeout(() => {
+              ws!.removeListener('close', onClose)
+              resolve()
+            }, 2000)
+          })
+        }
+      }
     }
   }
 
