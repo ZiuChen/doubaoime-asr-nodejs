@@ -1,10 +1,10 @@
-# doubaoime-asr
+# @ziuchen/doubaoime-asr
 
 [中文](README.zh-CN.md) | English
 
 Node.js client for **Doubao IME** (豆包输入法) Automatic Speech Recognition (ASR) service.
 
-Reverse-engineered from the Android client protocol, providing speech-to-text capabilities via WebSocket with Opus audio encoding and Protobuf message format.
+Node.js rewrite based on [doubaoime-asr (Python)](https://github.com/starccy/doubaoime-asr), implemented using Node.js >= 24 native capabilities.
 
 > **Requires Node.js >= 24**
 
@@ -29,22 +29,26 @@ This project is based on protocol analysis and reference to the Android Doubao I
 ## Installation
 
 ```bash
-pnpm add doubaoime-asr
+pnpm add @ziuchen/doubaoime-asr
 ```
 
-`@evan/opus` (Wasm-based Opus encoder) is included as a dependency — no native compilation needed.
+After installation, you can use the CLI globally via the `doubaoime-asr` command, or directly via npx:
+
+```
+npx @ziuchen/doubaoime-asr transcribe audio.wav -c credentials.json
+```
 
 ## Quick Start
 
 ### Library Usage
 
 ```typescript
-import { DoubaoASR, ASRConfig } from 'doubaoime-asr'
+import { DoubaoASR, ASRConfig } from '@ziuchen/doubaoime-asr'
 import { Encoder } from '@evan/opus'
 
 const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
 const config = new ASRConfig({
-  credentialPath: './credentials.json',
+  credentialPath: './credentials.json', // Auto-register and cache
   opusEncoder: { encode: (pcm) => Buffer.from(encoder.encode(pcm)) },
 })
 
@@ -67,10 +71,10 @@ for await (const resp of asr.transcribeRealtime(audioSource)) {
 
 #### Passing Credentials as Object
 
-Instead of a file path, you can pass credentials directly as a JS object:
+When used as a library, you can pass credentials directly as a JS object instead of a file path:
 
 ```typescript
-import { ASRConfig, registerDevice, getAsrToken } from 'doubaoime-asr'
+import { ASRConfig, registerDevice, getAsrToken } from '@ziuchen/doubaoime-asr'
 import { Encoder } from '@evan/opus'
 
 // Obtain credentials programmatically
@@ -93,11 +97,11 @@ doubaoime-asr register -o credentials.json
 # Transcribe audio file
 doubaoime-asr transcribe audio.wav -c credentials.json
 
-# Transcribe with verbose output (show interim results)
-doubaoime-asr transcribe audio.wav -c credentials.json --verbose
-
 # Named Entity Recognition
 doubaoime-asr ner "明天北京天气怎么样" -c credentials.json
+
+# Real-time recognition (from microphone)
+doubaoime-asr listen --list-devices
 
 # Help
 doubaoime-asr --help
@@ -144,7 +148,7 @@ Configuration class with automatic credential management.
 ### Convenience Functions
 
 ```typescript
-import { transcribe, transcribeStream, transcribeRealtime, ner } from 'doubaoime-asr'
+import { transcribe, transcribeStream, transcribeRealtime, ner } from '@ziuchen/doubaoime-asr'
 ```
 
 ### Other Exports
@@ -183,35 +187,6 @@ This project maximizes use of Node.js built-in APIs:
 
 Runtime dependencies: `ws` (WebSocket with custom headers), `cac` (CLI), `@bufbuild/protobuf` (protobuf encoding), `@evan/opus` (Opus audio encoding, Wasm).
 
-## Project Structure
-
-See [docs/architecture.md](docs/architecture.md) for detailed architecture documentation.
-
-```
-src/
-├── index.ts              # Public API exports
-├── cli.ts                # CLI entry point (cac)
-├── constants.ts          # API URLs, app config
-├── types.ts              # TypeScript type definitions
-├── gen/proto/asr_pb.ts   # Generated protobuf code (protobuf-es)
-├── utils/                # Pure functions (no I/O side effects)
-│   ├── audio.ts          # WAV parsing, PCM processing
-│   ├── crypto.ts         # Crypto operations
-│   ├── jwt.ts            # JWT token utilities
-│   └── response-parser.ts
-└── services/             # I/O services (network, file system)
-    ├── asr.ts            # WebSocket ASR client
-    ├── config.ts         # Configuration & credential management
-    ├── device.ts         # Device registration
-    ├── ner.ts            # Named Entity Recognition
-    ├── sami.ts           # SAMI token service
-    └── wave-client.ts    # Wave encryption protocol
-examples/
-├── file-transcribe.ts    # File transcription example
-├── ner.ts                # NER example
-└── credentials.ts        # Credential management examples
-```
-
 ## Examples
 
 See the `examples/` directory for runnable scripts:
@@ -242,7 +217,7 @@ protoc --es_out=src/gen --es_opt=target=ts --plugin=protoc-gen-es=node_modules/.
 
 ## Reference Implementation
 
-The Python reference implementation is maintained as a git submodule at `refs/doubaoime-asr`.
+The Python reference implementation is maintained as a git submodule under the `refs/@ziuchen/doubaoime-asr` directory.
 
 ```bash
 git submodule update --init

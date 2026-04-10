@@ -1,12 +1,10 @@
-# doubaoime-asr
+# @ziuchen/doubaoime-asr
 
 中文 | [English](README.md)
 
 豆包输入法语音识别 Node.js 客户端。
 
-基于 [doubaoime-asr (Python)](https://github.com/starccy/doubaoime-asr) 的 Node.js 重写，使用 Node.js >= 24 原生能力实现。
-
-> **需要 Node.js >= 24**
+基于 [doubaoime-asr (Python)](https://github.com/starccy/doubaoime-asr) 的 Node.js 重写。
 
 ## 免责声明
 
@@ -29,17 +27,21 @@
 ## 安装
 
 ```bash
-pnpm add doubaoime-asr
+pnpm add @ziuchen/doubaoime-asr
 ```
 
-`@evan/opus`（基于 Wasm 的 Opus 编码器）作为依赖一同分发，无需原生编译。
+安装后，可以在全局通过 `doubaoime-asr` 命令使用 CLI，或直接通过 npx 使用：
+
+```
+npx @ziuchen/doubaoime-asr transcribe audio.wav -c credentials.json
+```
 
 ## 快速开始
 
 ### 作为库使用
 
 ```typescript
-import { DoubaoASR, ASRConfig } from 'doubaoime-asr'
+import { DoubaoASR, ASRConfig } from '@ziuchen/doubaoime-asr'
 import { Encoder } from '@evan/opus'
 
 const encoder = new Encoder({ sample_rate: 16000, channels: 1, application: 'voip' })
@@ -70,7 +72,7 @@ for await (const resp of asr.transcribeRealtime(audioSource)) {
 作为库使用时，可直接传入凭据对象而非文件路径：
 
 ```typescript
-import { ASRConfig, registerDevice, getAsrToken } from 'doubaoime-asr'
+import { ASRConfig, registerDevice, getAsrToken } from '@ziuchen/doubaoime-asr'
 import { Encoder } from '@evan/opus'
 
 // 程序化获取凭据
@@ -93,11 +95,11 @@ doubaoime-asr register -o credentials.json
 # 识别音频文件
 doubaoime-asr transcribe audio.wav -c credentials.json
 
-# 显示中间结果的详细输出
-doubaoime-asr transcribe audio.wav -c credentials.json --verbose
-
 # 命名实体识别
 doubaoime-asr ner "明天北京天气怎么样" -c credentials.json
+
+# 实时识别（从麦克风输入）
+doubaoime-asr listen --list-devices
 
 # 查看帮助
 doubaoime-asr --help
@@ -144,7 +146,7 @@ doubaoime-asr --help
 ### 便捷函数
 
 ```typescript
-import { transcribe, transcribeStream, transcribeRealtime, ner } from 'doubaoime-asr'
+import { transcribe, transcribeStream, transcribeRealtime, ner } from '@ziuchen/doubaoime-asr'
 ```
 
 ### 其他导出
@@ -183,35 +185,6 @@ ffmpeg -i input.mp3 -ar 16000 -ac 1 -f wav output.wav
 
 运行时依赖：`ws`（WebSocket 自定义 Headers）、`cac`（CLI）、`@bufbuild/protobuf`（protobuf 编解码）、`@evan/opus`（Opus 音频编码，Wasm）。
 
-## 项目结构
-
-详细架构文档请查看 [docs/architecture.md](docs/architecture.md)。
-
-```
-src/
-├── index.ts              # 公共 API 导出
-├── cli.ts                # CLI 入口 (cac)
-├── constants.ts          # API URL、应用配置
-├── types.ts              # TypeScript 类型定义
-├── gen/proto/asr_pb.ts   # 生成的 protobuf 代码 (protobuf-es)
-├── utils/                # 纯函数（无 I/O 副作用）
-│   ├── audio.ts          # WAV 解析、PCM 处理
-│   ├── crypto.ts         # 加密操作
-│   ├── jwt.ts            # JWT 工具
-│   └── response-parser.ts
-└── services/             # I/O 服务（网络、文件系统）
-    ├── asr.ts            # WebSocket ASR 客户端
-    ├── config.ts         # 配置与凭据管理
-    ├── device.ts         # 设备注册
-    ├── ner.ts            # 命名实体识别
-    ├── sami.ts           # SAMI Token 服务
-    └── wave-client.ts    # Wave 加密协议
-examples/
-├── file-transcribe.ts    # 文件识别示例
-├── ner.ts                # NER 示例
-└── credentials.ts        # 凭据管理示例
-```
-
 ## 示例
 
 `examples/` 目录下提供可运行的示例脚本：
@@ -242,7 +215,7 @@ protoc --es_out=src/gen --es_opt=target=ts --plugin=protoc-gen-es=node_modules/.
 
 ## 参考实现
 
-Python 原始实现以 git submodule 形式维护在 `refs/doubaoime-asr` 目录下。
+Python 原始实现以 git submodule 形式维护在 `refs/@ziuchen/doubaoime-asr` 目录下。
 
 ```bash
 git submodule update --init
