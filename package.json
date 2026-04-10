@@ -1,7 +1,7 @@
 {
   "name": "@ziuchen/doubaoime-asr",
   "type": "module",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "ASR SDK based on DoubaoIME for Node.js",
   "author": "ZiuChen",
   "license": "MIT",
